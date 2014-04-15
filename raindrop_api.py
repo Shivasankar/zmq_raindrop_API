@@ -26,16 +26,11 @@ def subscriber(channel, callback):
     sock1.connect("tcp://localhost:8888")
     sock1.setsockopt(zmq.SUBSCRIBE, channel)
     print 'inside subscribe'
-    poll_obj = zmq.Poller
-    poll_obj.register(sock1, zmq.POLLIN)
-    cont = True
-    while cont:
-        socks = dict(poll_obj.poll())
+    while True:
         #for update in channel:
-        #print 'inside for'
-        if sock1 in socks and socks[sock1] == zmq.POLLIN:
-            msg1 = sock1.recv()
-            print msg1
-            #print json.dumps(msg1)
-            callback(msg1)
+        # #print 'inside for'
+        msg1 = sock1.recv()
+        print msg1
+        #print json.dumps(msg1)
+        callback(msg1)
     return
