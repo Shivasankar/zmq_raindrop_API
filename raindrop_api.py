@@ -1,6 +1,7 @@
 import zmq
 import socket
 import time
+from threading import *
 
 
 def publisher(channel, value):
@@ -11,8 +12,15 @@ def publisher(channel, value):
     print (channel, value)
     sock.send_multipart((channel, value))
 
-
 def subscriber(channel, callback):
+    try:
+        print "New Thread Created"
+        Thread(target=subscriber1,args=(channel,callback)).start()
+    except Exception, ertxt:
+        print ertxt
+
+
+def subscriber1(channel, callback):
     ctx = zmq.Context()
     sock = ctx.socket(zmq.SUB)
     sock.connect("tcp://127.0.0.1:8888")
