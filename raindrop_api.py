@@ -1,36 +1,27 @@
 import zmq
-import sys
-import json
 import socket
 import time
 
 
 def publisher(channel, value):
-    ##publish
-    cont = zmq.Context()
-    sock = cont.socket(zmq.PUB)
-    sock.bind("tcp://*:8888")
-    while True:
-        #print 'inside while'
-        sock.send("%s:%s" % (channel, value))
-        print ("%s:%s" % (channel, value))
-        time.sleep(1)
-        #break
-    return
+    ctx = zmq.Context()
+    sock = ctx.socket(zmq.PUB)
+    sock.bind("tcp://127.0.0.1:8888")
+    time.sleep(1)
+    print (channel, value)
+    sock.send_multipart((channel, value))
 
 
 def subscriber(channel, callback):
-    print channel, callback
-    context1 = zmq.Context()
-    sock1 = context1.socket(zmq.SUB)
-    sock1.connect("tcp://localhost:8888")
-    sock1.setsockopt(zmq.SUBSCRIBE, channel)
-    print 'inside subscribe'
+    ctx = zmq.Context()
+    sock = ctx.socket(zmq.SUB)
+    sock.connect("tcp://127.0.0.1:8888")
+    sock.setsockopt(zmq.SUBSCRIBE, channel)
+    poll_obj = zmq.Poller()
+    poll_obj.register(sock, zmq.POLLIN)
     while True:
-        #for update in channel:
-        # #print 'inside for'
-        msg1 = sock1.recv()
-        print msg1
-        #print json.dumps(msg1)
-        callback(msg1)
-    return
+        socks = dict(poll_obj.poll())
+        if sock in socks and socks[sock] == zmq.POLLIN:
+            channel, msg1 = sock.recv_multipart()
+            print msg1
+    callback(msg1)
